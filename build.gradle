@@ -1,0 +1,43 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
+
+allprojects {
+    group = project.group
+    version = project.version
+
+    repositories {
+        mavenCentral()
+    }
+}
+
+subprojects {
+    apply plugin: 'java-library'
+    apply plugin: 'maven-publish'
+
+    java {
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
+        withSourcesJar()
+        withJavadocJar()
+    }
+
+    dependencies {
+        implementation "org.slf4j:slf4j-api:${slf4jVersion}"
+    }
+
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                from components.java
+
+                pom {
+                    name = project.name
+                    description = "Sovereign - Distributed Leader Election for Java"
+                    url = 'https://github.com/Traqueur-dev/Sovereign'
+                }
+            }
+        }
+    }
+}
