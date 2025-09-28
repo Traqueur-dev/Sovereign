@@ -41,3 +41,28 @@ subprojects {
         }
     }
 }
+
+build {
+    dependsOn subprojects.build
+
+    doLast {
+        println "👑 All Sovereign modules built successfully!"
+        subprojects.each { subproject ->
+            println "  ✅ ${subproject.name}"
+        }
+    }
+}
+
+publish {
+    description = 'Publish all Sovereign modules'
+    group = 'publishing'
+
+    dependsOn subprojects.publishToMavenLocal
+
+    doLast {
+        println "👑 All Sovereign modules published successfully!"
+        subprojects.each { subproject ->
+            println "  📦 ${subproject.group}:${subproject.name}:${subproject.version}"
+        }
+    }
+}
