@@ -90,6 +90,10 @@ public class RedisLeaderElection implements LeaderElection {
                     }
                     return CompletableFuture.completedFuture(null);
                 }, scheduler)
+                .thenRun(() -> {
+                    eventBus.shutdown();
+                    logger.debug("EventBus shutdown completed for instance: {}", instanceId);
+                })
                 .exceptionally(throwable -> {
                     logger.error("Error during shutdown for instance: {}", instanceId, throwable);
                     return null;
