@@ -27,6 +27,17 @@ public record LeaderElectionConfig<B extends BackendConfig>(Duration leaderTTL,
     }
 
     /**
+     * Creates a new Builder instance for LeaderElectionConfig with the specified additional backend configuration.
+     * @param additionalConfig The additional backend configuration.
+     * @return A new Builder instance.
+     */
+    public static <B extends BackendConfig> Builder<B> configureFor(B additionalConfig) {
+        Builder<B> builder = new Builder<>();
+        builder.additionalConfig = additionalConfig;
+        return builder;
+    }
+
+    /**
      * Creates a new Builder instance for LeaderElectionConfig.
      * @return A new Builder instance.
      */
@@ -50,7 +61,7 @@ public record LeaderElectionConfig<B extends BackendConfig>(Duration leaderTTL,
             // Private constructor to enforce usage of the static builder() method
         }
 
-        public Builder<B> config(B additionalConfig) {
+        public Builder<B> additionalConfig(B additionalConfig) {
             this.additionalConfig = additionalConfig;
             return this;
         }
@@ -92,7 +103,7 @@ public record LeaderElectionConfig<B extends BackendConfig>(Duration leaderTTL,
             if(logger == null) {
                 return false;
             }
-            if(additionalConfig == null) {
+            if(additionalConfig == null || !additionalConfig.isValid()) {
                 return false;
             }
             if(leaderTtl.isNegative() || leaderTtl.isZero()) {

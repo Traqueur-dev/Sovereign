@@ -7,7 +7,7 @@ import java.util.concurrent.ScheduledExecutorService;
 
 public class LeaderElectionFactory {
     
-    private static final Map<BackendType, LeaderElectionProvider<?, ?>> PROVIDERS = new ConcurrentHashMap<>();
+    private static final Map<Class<? extends BackendConfig>, LeaderElectionProvider<?, ?>> PROVIDERS = new ConcurrentHashMap<>();
 
     static {
         ServiceLoader.load(LeaderElectionProvider.class)
@@ -20,16 +20,15 @@ public class LeaderElectionFactory {
 
     @SuppressWarnings("unchecked")
     public static <T extends LeaderElection, B extends BackendConfig> T create(
-            BackendType backendType,
             String instanceId,
             ScheduledExecutorService scheduler,
             LeaderElectionConfig<B> config) {
         
         LeaderElectionProvider<T, B> provider = 
-            (LeaderElectionProvider<T, B>) PROVIDERS.get(backendType);
+            (LeaderElectionProvider<T, B>) PROVIDERS.get(config.additionalConfig().getClass());
             
         if (provider == null) {
-            throw new IllegalArgumentException("Unknown backend: " + backendType.name());
+            throw new IllegalArgumentException("Unknown backend: " + config.additionalConfig().getClass().getSimpleName());
         }
         
         return provider.create(instanceId, scheduler, config);

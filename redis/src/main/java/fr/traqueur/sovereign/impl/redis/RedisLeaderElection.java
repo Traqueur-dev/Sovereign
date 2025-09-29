@@ -36,7 +36,7 @@ public class RedisLeaderElection implements LeaderElection {
     private volatile ScheduledFuture<?> electionTask;
     private volatile ScheduledFuture<?> heartbeatTask;
 
-    public RedisLeaderElection(String instanceId,
+    protected RedisLeaderElection(String instanceId,
                                RedisAsyncCommands<String, String> redisCommands,
                                ScheduledExecutorService scheduler,
                                LeaderElectionConfig<RedisElectionConfig> config) {
