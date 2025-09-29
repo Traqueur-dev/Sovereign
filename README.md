@@ -11,6 +11,7 @@ A robust, distributed leader election library for Java applications, designed to
 - **Health Monitoring**: Automatic leader health checking and failover
 - **Configurable Timeouts**: Flexible configuration for TTL, heartbeat, and election intervals
 - **Clean State Management**: Clear state transitions (FOLLOWER, CANDIDATE, LEADER)
+- **Event System**: Reactive event notifications for state changes and leadership transitions with sync/async support
 
 ## Quick Start
 
@@ -48,6 +49,15 @@ LeaderElection election = LeaderElectionFactory.create(
     scheduler,
     config
 );
+
+// Register event listeners (optional)
+election.onLeadershipAcquired(event -> {
+    System.out.println("Became leader at: " + event.timestamp());
+}, false);
+
+election.onLeadershipLost(event -> {
+    System.out.println("Lost leadership at: " + event.timestamp());
+}, false);
 
 // Start the election process
 election.start().thenRun(() -> {
@@ -116,6 +126,52 @@ The library manages three distinct states:
 
 State transitions are logged and can be monitored via the `getState()` method.
 
+## Event System
+
+Sovereign provides a comprehensive event system for monitoring leader election lifecycle:
+
+### Available Events
+
+- **`StateChangedEvent`**: Fired on any state transition (FOLLOWER, CANDIDATE, LEADER)
+- **`LeadershipAcquiredEvent`**: Fired when the instance becomes leader
+- **`LeadershipLostEvent`**: Fired when the instance loses leadership
+- **`ElectionFailedEvent`**: Fired when an election cycle encounters an error
+
+### Registering Listeners
+
+```java
+// Generic event registration
+election.on(StateChangedEvent.class, event -> {
+    System.out.println("State changed from " + event.previousState() +
+                       " to " + event.newState());
+}, true); // true = async, false = sync
+
+// Convenience methods for common events
+election.onLeadershipAcquired(event -> {
+    // Handle leadership acquisition
+}, false);
+
+election.onLeadershipLost(event -> {
+    // Handle leadership loss
+}, false);
+```
+
+### Synchronous vs Asynchronous Listeners
+
+- **Synchronous (`async = false`)**: Listeners are called immediately on the calling thread. Use for lightweight operations.
+- **Asynchronous (`async = true`)**: Listeners are called on the event executor thread pool. Use for heavy processing.
+
+### Unregistering Listeners
+
+```java
+ListenerRegistration registration = election.onLeadershipAcquired(event -> {
+    // Handle event
+}, false);
+
+// Later, to unregister:
+registration.remove();
+```
+
 ## Building Custom Backends
 
 Implement the `LeaderElectionProvider` interface:
@@ -149,8 +205,8 @@ Register via `META-INF/services/fr.traqueur.sovereign.api.LeaderElectionProvider
 
 ### Planned Features
 
-- **Event System**: Reactive notifications for state changes and leadership transitions
 - **Additional Backends**: Support for Zookeeper, Consul, etcd
+- **Metrics Integration**: Built-in metrics for monitoring election behavior
 
 ## Requirements
 

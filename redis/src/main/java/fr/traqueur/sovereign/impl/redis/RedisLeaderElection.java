@@ -22,6 +22,47 @@ import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Redis-based implementation of leader election.
+ * <p>
+ * This implementation uses Redis as a coordination backend for distributed leader election.
+ * It leverages Redis's atomic operations, TTL mechanisms, and key-value storage to implement
+ * a reliable leader election algorithm.
+ * </p>
+ *
+ * <h2>Architecture:</h2>
+ * <ul>
+ *   <li><strong>Leader Key:</strong> Single key holding the current leader's instance ID with TTL</li>
+ *   <li><strong>Heartbeat Keys:</strong> Per-instance keys tracking leader health with timestamps</li>
+ *   <li><strong>Periodic Tasks:</strong> Election cycle and heartbeat tasks run at configured intervals</li>
+ *   <li><strong>Event System:</strong> Publishes events for state changes and leadership transitions</li>
+ * </ul>
+ *
+ * <h2>Election Algorithm:</h2>
+ * <ol>
+ *   <li>Check if leader key exists</li>
+ *   <li>If no leader, attempt to acquire leadership using Redis SETNX with TTL</li>
+ *   <li>If leader exists, verify its health via heartbeat key</li>
+ *   <li>If leader is unhealthy, attempt takeover</li>
+ *   <li>Current leader periodically renews TTL and sends heartbeats</li>
+ * </ol>
+ *
+ * <h2>Race Condition Prevention:</h2>
+ * <p>
+ * To prevent race conditions during election, this implementation uses:
+ * </p>
+ * <ul>
+ *   <li>Random startup delay (0-10 seconds)</li>
+ *   <li>Double verification after SETNX success</li>
+ *   <li>Atomic Redis operations (SETNX, TTL management)</li>
+ * </ul>
+ *
+ * <h2>Thread Safety:</h2>
+ * <p>
+ * This class is thread-safe. State changes are managed via atomic operations and
+ * all Redis operations are executed asynchronously.
+ * </p>
+ *
+ * @see fr.traqueur.sovereign.api.LeaderElection
+ * @see RedisElectionConfig
  */
 public class RedisLeaderElection implements LeaderElection {
 
@@ -40,6 +81,18 @@ public class RedisLeaderElection implements LeaderElection {
     private volatile ScheduledFuture<?> electionTask;
     private volatile ScheduledFuture<?> heartbeatTask;
 
+    /**
+     * Constructs a new Redis-based leader election instance.
+     * <p>
+     * This constructor is package-private and should only be called by
+     * {@link RedisLeaderElectionProvider}.
+     * </p>
+     *
+     * @param instanceId     the unique identifier for this instance
+     * @param redisCommands  the Redis async commands interface
+     * @param scheduler      the executor service for periodic tasks
+     * @param config         the election configuration
+     */
     protected RedisLeaderElection(String instanceId,
                                RedisAsyncCommands<String, String> redisCommands,
                                ScheduledExecutorService scheduler,
