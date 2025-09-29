@@ -1,4 +1,4 @@
-package fr.traqueur.sovereign.api;
+package fr.traqueur.sovereign.api.config;
 
 public interface BackendConfig {
 

@@ -1,6 +1,6 @@
 package fr.traqueur.sovereign.impl.redis;
 
-import fr.traqueur.sovereign.api.LeaderElectionConfig;
+import fr.traqueur.sovereign.api.config.LeaderElectionConfig;
 import fr.traqueur.sovereign.api.LeaderElectionProvider;
 
 import java.util.concurrent.ScheduledExecutorService;

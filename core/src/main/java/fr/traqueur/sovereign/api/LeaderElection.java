@@ -1,5 +1,11 @@
 package fr.traqueur.sovereign.api;
 
+import fr.traqueur.sovereign.api.events.Event;
+import fr.traqueur.sovereign.api.events.LeadershipAcquiredEvent;
+import fr.traqueur.sovereign.api.events.LeadershipLostEvent;
+import fr.traqueur.sovereign.api.listeners.Listener;
+import fr.traqueur.sovereign.api.listeners.ListenerRegistration;
+
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -41,5 +47,15 @@ public interface LeaderElection {
      * @return The unique identifier.
      */
     String getId();
+
+    <T extends Event> ListenerRegistration on(Class<T> eventType, Listener<T> listener, boolean async);
+
+    default ListenerRegistration onLeadershipAcquired(Listener<LeadershipAcquiredEvent> listener, boolean async) {
+        return on(LeadershipAcquiredEvent.class, listener, async);
+    }
+
+    default ListenerRegistration onLeadershipLost(Listener<LeadershipLostEvent> listener, boolean async) {
+        return on(LeadershipLostEvent.class, listener, async);
+    }
 
 }

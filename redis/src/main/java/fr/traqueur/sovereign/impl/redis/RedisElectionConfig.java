@@ -1,6 +1,6 @@
 package fr.traqueur.sovereign.impl.redis;
 
-import fr.traqueur.sovereign.api.BackendConfig;
+import fr.traqueur.sovereign.api.config.BackendConfig;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 
 public record RedisElectionConfig(RedisAsyncCommands<String, String> redisCommands, String leaderKey, String heartbeatKeyPrefix) implements BackendConfig {

@@ -1,5 +1,8 @@
 package fr.traqueur.sovereign.api;
 
+import fr.traqueur.sovereign.api.config.BackendConfig;
+import fr.traqueur.sovereign.api.config.LeaderElectionConfig;
+
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.concurrent.ConcurrentHashMap;

@@ -1,8 +1,11 @@
 package fr.traqueur.sovereign.impl.redis;
 
 import fr.traqueur.sovereign.api.LeaderElection;
-import fr.traqueur.sovereign.api.LeaderElectionConfig;
+import fr.traqueur.sovereign.api.config.LeaderElectionConfig;
 import fr.traqueur.sovereign.api.State;
+import fr.traqueur.sovereign.api.events.*;
+import fr.traqueur.sovereign.api.listeners.Listener;
+import fr.traqueur.sovereign.api.listeners.ListenerRegistration;
 import io.lettuce.core.SetArgs;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 import org.slf4j.Logger;
@@ -24,6 +27,7 @@ public class RedisLeaderElection implements LeaderElection {
 
     private final String instanceId;
     private final RedisAsyncCommands<String, String> redisCommands;
+    private final EventBus eventBus;
     private final ScheduledExecutorService scheduler;
     private final LeaderElectionConfig<RedisElectionConfig> config;
     private final Logger logger;
@@ -46,6 +50,7 @@ public class RedisLeaderElection implements LeaderElection {
         this.config = config;
         this.logger = config.logger();
         this.random = new Random();
+        this.eventBus = new EventBus(scheduler, logger);
 
         logger.info("Sovereign instance created: {}", instanceId);
     }
@@ -106,6 +111,11 @@ public class RedisLeaderElection implements LeaderElection {
         return instanceId;
     }
 
+    @Override
+    public <T extends Event> ListenerRegistration on(Class<T> eventType, Listener<T> listener, boolean async) {
+        return eventBus.addListener(listener, eventType, async);
+    }
+
     private void startPeriodicTasks() {
         electionTask = scheduler.scheduleAtFixedRate(
                 this::runElectionCycle,
@@ -141,6 +151,11 @@ public class RedisLeaderElection implements LeaderElection {
 
         masterElection().exceptionally(throwable -> {
             logger.warn("Election cycle failed for instance {}: {}", instanceId, throwable.getMessage());
+            eventBus.publishEvent(new ElectionFailedEvent(
+                    instanceId,
+                    System.currentTimeMillis(),
+                    throwable
+            ));
             return null;
         });
     }
@@ -366,6 +381,26 @@ public class RedisLeaderElection implements LeaderElection {
         State previousState = currentState.getAndSet(newState);
         if (previousState != newState) {
             lastStateChange.set(System.currentTimeMillis());
+
+            eventBus.publishEvent(new StateChangedEvent(
+                    instanceId,
+                    System.currentTimeMillis(),
+                    previousState,
+                    newState
+            ));
+
+            if (newState == State.LEADER) {
+                eventBus.publishEvent(new LeadershipAcquiredEvent(
+                        instanceId,
+                        System.currentTimeMillis()
+                ));
+            } else if (previousState == State.LEADER) {
+                eventBus.publishEvent(new LeadershipLostEvent(
+                        instanceId,
+                        System.currentTimeMillis()
+                ));
+            }
+
             logger.debug("State transition for {}: {} -> {}", instanceId, previousState, newState);
         }
     }
