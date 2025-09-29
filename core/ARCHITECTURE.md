@@ -264,12 +264,12 @@ Sovereign provides a comprehensive event system for monitoring election state.
 
 ### Event Types
 
-| Event | When Fired | Properties |
-|-------|-----------|------------|
-| `StateChangedEvent` | Any state transition | `previousState`, `newState` |
-| `LeadershipAcquiredEvent` | Transition to LEADER | `instanceId`, `timestamp` |
-| `LeadershipLostEvent` | Transition from LEADER | `instanceId`, `timestamp` |
-| `ElectionFailedEvent` | Election attempt fails | `instanceId`, `timestamp`, `cause` |
+| Event                     | When Fired             | Properties                         |
+|---------------------------|------------------------|------------------------------------|
+| `StateChangedEvent`       | Any state transition   | `previousState`, `newState`        |
+| `LeadershipAcquiredEvent` | Transition to LEADER   | `instanceId`, `timestamp`          |
+| `LeadershipLostEvent`     | Transition from LEADER | `instanceId`, `timestamp`          |
+| `ElectionFailedEvent`     | Election attempt fails | `instanceId`, `timestamp`, `cause` |
 
 ### EventBus Architecture (from EventBus.java)
 
@@ -700,15 +700,15 @@ election.start().join();
 
 ## Design Patterns Summary
 
-| Pattern | Usage | Benefit |
-|---------|-------|---------|
-| **Service Provider Interface** | Backend discovery | Zero-config plugin system |
-| **Factory Pattern** | Instance creation | Centralized instantiation logic |
-| **Builder Pattern** | Configuration | Fluent, type-safe config |
-| **Generic Type Parameters** | Type safety | Compile-time backend matching |
-| **Observer Pattern** | Event system | Decoupled state monitoring |
-| **State Pattern** | Election states | Clear state transitions |
-| **Template Method** | LeaderElection interface | Consistent lifecycle API |
+| Pattern                        | Usage                    | Benefit                         |
+|--------------------------------|--------------------------|---------------------------------|
+| **Service Provider Interface** | Backend discovery        | Zero-config plugin system       |
+| **Factory Pattern**            | Instance creation        | Centralized instantiation logic |
+| **Builder Pattern**            | Configuration            | Fluent, type-safe config        |
+| **Generic Type Parameters**    | Type safety              | Compile-time backend matching   |
+| **Observer Pattern**           | Event system             | Decoupled state monitoring      |
+| **State Pattern**              | Election states          | Clear state transitions         |
+| **Template Method**            | LeaderElection interface | Consistent lifecycle API        |
 
 ---
 
